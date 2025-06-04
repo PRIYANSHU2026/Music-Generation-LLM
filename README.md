@@ -1,4 +1,4 @@
-# Text2midi: Generating Symbolic Music from Captions
+# Text2midi: Generating Symbolic Music from Captions (For our Project)
 
 [Demo](https://huggingface.co/spaces/amaai-lab/text2midi) | [Model](https://huggingface.co/amaai-lab/text2midi) | [Examples](https://amaai-lab.github.io/Text2midi/) | [Paper](https://arxiv.org/abs/2412.16526) | [Dataset](https://huggingface.co/datasets/amaai-lab/MidiCaps)
 
