@@ -16,9 +16,9 @@ from enum import Enum
 import mido
 from pathlib import Path
 
-# Import core functionality from app.py
+# Import core functionality from lib.py
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from app import (
+from lib import (
     generate_exercise, json_to_midi, midi_to_mp3, create_visualization,
     create_metronome_audio, calculate_difficulty_rating, query_mistral,
     safe_parse_json, get_fallback_exercise, install
