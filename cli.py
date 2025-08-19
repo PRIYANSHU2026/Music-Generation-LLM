@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#updated
 """
 Adaptive Music Exercise Generator CLI (Typer-based)
 ==================================================
