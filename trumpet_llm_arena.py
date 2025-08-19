@@ -12,9 +12,9 @@ import numpy as np
 import scipy.io.wavfile
 from pydub import AudioSegment
 
-# Import functions from lib.py
+# Import functions from app.py
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from lib import json_to_midi, note_name_to_midi, is_rest
+from app import json_to_midi, note_name_to_midi, is_rest
 
 # -----------------------------------------------------------------------------
 # Helper functions

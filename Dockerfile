@@ -18,7 +18,7 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir typer[all] rich mido midi2audio pydub streamlit scipy
+RUN pip install --no-cache-dir typer[all] rich mido midi2audio pydub
 
 # Copy the rest of the application
 COPY . .
@@ -46,4 +46,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 7860
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python", "cli.py", "generate", "--output-format", "all"]
