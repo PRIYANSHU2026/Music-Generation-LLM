@@ -32,6 +32,11 @@ RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsy
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
-# Allow `docker run <img> <subcommand> [args...]`, default to `info`
+# Expose port (optional, useful for web UI)
+EXPOSE 7860
+
+# Default entrypoint runs CLI
 ENTRYPOINT ["python", "cli.py"]
+
+# Default command (can be overridden)
 CMD ["info"]
