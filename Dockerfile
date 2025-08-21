@@ -1,13 +1,12 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies required for audio and soundfont rendering
+RUN apt-get update && apt-get install -y --no-install-recommends \
     fluidsynth \
     libsndfile1 \
+    ffmpeg \
     wget \
-    libfreetype6-dev \
-    libpng-dev \
-    pkg-config \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -17,33 +16,21 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir typer[all] rich mido midi2audio pydub
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir typer[all] rich
 
 # Copy the rest of the application
 COPY . .
 
-# Download soundfonts
-RUN mkdir -p /app/soundfonts && \
-    wget -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsynth/raw/master/sf2/Trumpet.sf2 && \
-    wget -O /app/soundfonts/Piano.sf2 https://musical-artifacts.com/artifacts/2719/GeneralUser_GS_1.471.sf2 && \
-    wget -O /app/soundfonts/Violin.sf2 https://musical-artifacts.com/artifacts/2744/SalC5Light.sf2 && \
-    wget -O /app/soundfonts/Clarinet.sf2 https://musical-artifacts.com/artifacts/2744/SalC5Light.sf2 && \
-    wget -O /app/soundfonts/Flute.sf2 https://musical-artifacts.com/artifacts/2744/SalC5Light.sf2
+# Pre-create necessary directories
+RUN mkdir -p /app/static /app/output /app/temp_audio /app/soundfonts
 
-# Create necessary directories
-RUN mkdir -p /app/static
-RUN mkdir -p /app/output
-RUN mkdir -p /app/temp_audio
+# Optionally prefetch core soundfont for offline runs (best-effort)
+RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsynth/raw/master/sf2/Trumpet.sf2 || true
 
-# Download VexFlow for local use
-RUN wget -O /app/static/vexflow.js https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js
+# Environment
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-# Expose port
-EXPOSE 7860
-
-# Run the application
-CMD ["python", "cli.py", "generate", "--output-format", "all"]
+# Default command runs the CLI help. Override with: docker run <img> python cli.py generate ...
+CMD ["python", "cli.py", "info"]
