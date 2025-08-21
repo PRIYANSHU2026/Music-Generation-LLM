@@ -46,4 +46,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 7860
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python", "Cli.py"]
