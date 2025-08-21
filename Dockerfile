@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 FROM python:3.9-slim
 
 # Install system dependencies
@@ -38,12 +39,61 @@ RUN mkdir -p /app/temp_audio
 
 # Download VexFlow for local use
 RUN wget -O /app/static/vexflow.js https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js
+=======
+# Use Python 3.11 slim image for smaller size
+FROM python:3.11-slim
+>>>>>>> Stashed changes
 
 # Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Set work directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        git \
+        && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY . .
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+USER app
 
 # Expose port
-EXPOSE 7860
+EXPOSE 8000
 
+<<<<<<< Updated upstream
 # Run the application
 CMD ["python", "app.py"]
+=======
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command (can be overridden)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Alternative commands for different use cases:
+# For development with auto-reload:
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+#
+# For production with gunicorn:
+# CMD ["gunicorn", "app.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+#
+# For CLI usage:
+# CMD ["music-llm", "--help"]
+>>>>>>> Stashed changes
