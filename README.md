@@ -3,10 +3,10 @@
 
 </div>
 
-<h1 align="center">GSoC 2025 Report</h1>
+<h1 align="center">GSoC 2025(INCF)</h1>
 
 
-## **Project Title:** *HarmonyHub: Using Generative AI for Adaptive Learning in Music*  
+## **Project Title:** *HarmonyHub: Using Generative AI for Adaptive Learning in Music CLI Version*  
 **Organization:** INCF  
 **Contributor:** **Priyanshu Tiwari**  
 **Mentors:** Alberto Acquilino • Mirko D'Andrea • Keerthi Reddy Kambham • Thrun • Oscar  
@@ -59,14 +59,6 @@ python cli.py convert --input-file exercise.json --output-format mp3
 # Display available options
 python cli.py info
 ```
-
-## Web Interface
-To run the web interface locally:
-
-```bash
-python app.py
-```
-
 ## Docker Deployment
 Build and run the Docker container:
 
