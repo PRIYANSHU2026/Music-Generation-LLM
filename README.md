@@ -1,15 +1,35 @@
-# Adaptive Music Exercise Generator
+<div align="center">
+  <img width="561" height="212" alt="image" src="https://github.com/user-attachments/assets/f9a451aa-8237-4aa6-a335-df192f5682a7" />
 
-## Overview
-This application generates custom musical exercises using LLM technology, perfectly fit to user-specified parameters like number of measures and time signature. It guarantees exact durations in MIDI and provides visual music notation using VexFlow.
+</div>
 
-## Features
-- Generates musical exercises based on user preferences
-- Visualizes music notation using VexFlow
-- Converts exercises to MIDI and audio
-- Supports multiple instruments
-- Provides both web interface and CLI options
-- Optimized for Hugging Face Spaces deployment
+<h1 align="center">GSoC 2025 Report</h1>
+
+
+## **Project Title:** *HarmonyHub: Using Generative AI for Adaptive Learning in Music*  
+**Organization:** INCF  
+**Contributor:** **Priyanshu Tiwari**  
+**Mentors:** Alberto Acquilino • Mirko D'Andrea • Keerthi Reddy Kambham • Thrun • Oscar  
+**Hugging Face Repo:** [🔗 Music LLM](https://huggingface.co/spaces/SHIKARICHACHA/adaptive-music-exercise-generator)
+
+---
+
+## 📜 **Executive Summary**
+
+**HarmonyHub** is an **AI-driven adaptive music education platform** that leverages the **Mistral LLM API** to generate **personalized, rhythmically precise, and melodically coherent** practice exercises in real time. Designed for **students, educators, and self-taught musicians**, the system dynamically adapts to user-defined parameters:
+
+- 🎹 **Instrument**: Piano, Violin, Trumpet, Clarinet, Flute
+- 🔤 **Difficulty Level**: Beginner, Intermediate, Advanced
+- ⏱ **Time Signature & Key**: e.g., 4/4 in C Major, 6/8 in A Minor
+- 🎯 **Practice Focus**: Rhythmic, Melodic, Technical, Expressive, Sight-Reading, Improvisation
+- 🎼 **Rhythmic Complexity**: Basic, Syncopated, Polyrhythmic
+
+Generated exercises are delivered in **MIDI**, **MP3**, and **JSON** formats, accompanied by:
+- Real-time **sheet music visualization** via VexFlow
+- Interactive **AI music theory assistant**
+- No-code **Gradio interface** for instant access
+
+HarmonyHub bridges **generative AI** and **music cognition**, offering an intelligent, accessible, and scalable tool for modern music pedagogy.
 
 ## VexFlow Integration
 The application uses VexFlow for music notation visualization with multiple fallback mechanisms:
