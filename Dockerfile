@@ -32,5 +32,6 @@ RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsy
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
-# Default command runs the CLI help. Override with: docker run <img> python cli.py generate ...
-CMD ["python", "cli.py", "info"]
+# Allow `docker run <img> <subcommand> [args...]`, default to `info`
+ENTRYPOINT ["python", "cli.py"]
+CMD ["info"]
