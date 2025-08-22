@@ -16,8 +16,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir typer[all] rich
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
@@ -25,18 +24,19 @@ COPY . .
 # Pre-create necessary directories
 RUN mkdir -p /app/static /app/output /app/temp_audio /app/soundfonts
 
-# Optionally prefetch core soundfont for offline runs (best-effort)
-RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsynth/raw/master/sf2/Trumpet.sf2 || true
+# Optionally prefetch core soundfont for offline runs
+RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://musical-artifacts.com/artifacts/663/GeneralUser_GS_1.471.sf2 || true
+RUN wget -q -O /app/soundfonts/GeneralUser_GS_1.471.sf2 https://musical-artifacts.com/artifacts/663/GeneralUser_GS_1.471.sf2 || true
 
-# Environment
+# Environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
-# Expose port (optional, useful for web UI)
+# Expose port (useful for web UI)
 EXPOSE 7860
 
 # Default entrypoint runs CLI
 ENTRYPOINT ["python", "cli.py"]
 
-# Default command (can be overridden)
+# Default command shows info
 CMD ["info"]
