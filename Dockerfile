@@ -25,8 +25,14 @@ COPY . .
 # Pre-create necessary directories
 RUN mkdir -p /app/static /app/output /app/temp_audio /app/soundfonts
 
+<<<<<<< Updated upstream
 # Optionally prefetch core soundfont for offline runs (best-effort)
 RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://github.com/FluidSynth/fluidsynth/raw/master/sf2/Trumpet.sf2 || true
+=======
+# Optionally prefetch core soundfont for offline runs
+RUN wget -q -O /app/soundfonts/Trumpet.sf2 https://musical-artifacts.com/artifacts/663/GeneralUser_GS_1.471.sf2 || true
+RUN wget -q -O /app/soundfonts/GeneralUser_GS_1.471.sf2 https://musical-artifacts.com/artifacts/663/GeneralUser_GS_1.471.sf2 || true
+>>>>>>> Stashed changes
 
 # Environment
 ENV PYTHONUNBUFFERED=1 \
