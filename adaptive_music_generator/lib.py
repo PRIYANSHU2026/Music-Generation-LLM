@@ -18,7 +18,7 @@ from .exceptions import MusicGenerationError, InvalidParameterError
 
 # Constants
 MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
-MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "bPj0wARXs5dk2L1ipFOdoqHMmQnXuMNv")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "yQdfM8MLbX9uhInQ7id4iUTwN4h4pDLX")
 
 TICKS_PER_BEAT = 480  # Standard MIDI resolution
 TICKS_PER_8TH = TICKS_PER_BEAT // 2  # 240 ticks per 8th note
