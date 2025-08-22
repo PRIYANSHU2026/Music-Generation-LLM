@@ -1,16 +1,42 @@
-# HarmonyHub: Adaptive Music Exercise Generator
+<div align="center">
+  <img width="561" height="212" alt="image" src="https://github.com/user-attachments/assets/f9a451aa-8237-4aa6-a335-df192f5682a7" />
 
-## Overview
+</div>
 
-HarmonyHub is an intelligent music education tool that uses generative AI to create personalized music exercises. It adapts to different skill levels and provides real-time feedback, making music learning more engaging and effective.
+<h1 align="center">GSoC 2025(INCF)</h1>
 
-## Features
 
-- **Adaptive Exercise Generation**: Creates music exercises tailored to your skill level and learning goals
-- **Multiple Output Formats**: Generates exercises as MIDI files, audio files, and sheet music
-- **Metronome Generation**: Creates customizable metronome tracks to practice with
-- **Format Conversion**: Converts between different music file formats
-- **VexFlow Integration**: Visualizes sheet music with VexFlow
+## **Project Title:** *HarmonyHub: Using Generative AI for Adaptive Learning in Music CLI Version*  
+**Organization:** INCF  
+**Contributor:** **Priyanshu Tiwari**  
+**Mentors:** Alberto Acquilino • Mirko D'Andrea • Keerthi Reddy Kambham • Thrun • Oscar  
+**Hugging Face Repo:** [🔗 Music LLM](https://huggingface.co/spaces/SHIKARICHACHA/adaptive-music-exercise-generator)
+
+---
+
+## 📜 **Executive Summary**
+
+**HarmonyHub** is an **AI-driven adaptive music education platform** that leverages the **Mistral LLM API** to generate **personalized, rhythmically precise, and melodically coherent** practice exercises in real time. Designed for **students, educators, and self-taught musicians**, the system dynamically adapts to user-defined parameters:
+
+- 🎹 **Instrument**: Piano, Violin, Trumpet, Clarinet, Flute
+- 🔤 **Difficulty Level**: Beginner, Intermediate, Advanced
+- ⏱ **Time Signature & Key**: e.g., 4/4 in C Major, 6/8 in A Minor
+- 🎯 **Practice Focus**: Rhythmic, Melodic, Technical, Expressive, Sight-Reading, Improvisation
+- 🎼 **Rhythmic Complexity**: Basic, Syncopated, Polyrhythmic
+
+Generated exercises are delivered in **MIDI**, **MP3**, and **JSON** formats, accompanied by:
+- Real-time **sheet music visualization** via VexFlow
+- Interactive **AI music theory assistant**
+- No-code **Gradio interface** for instant access
+
+HarmonyHub bridges **generative AI** and **music cognition**, offering an intelligent, accessible, and scalable tool for modern music pedagogy.
+
+## VexFlow Integration
+The application uses VexFlow for music notation visualization with multiple fallback mechanisms:
+1. Primary CDN: jsdelivr.net
+2. Local copy in static directory
+3. Secondary CDN: unpkg.com
+
 
 ## Project Structure
 
