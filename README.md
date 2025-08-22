@@ -37,38 +37,130 @@ The application uses VexFlow for music notation visualization with multiple fall
 2. Local copy in static directory
 3. Secondary CDN: unpkg.com
 
-## CLI Usage
-The application provides a command-line interface for generating exercises:
+
+## Project Structure
+
+```
+adaptive-music-generator/
+├── adaptive_music_generator/
+│   ├── __init__.py         # Package initialization
+│   ├── lib.py              # Core music generation logic
+│   ├── processors.py       # MIDI/audio/image processing
+│   ├── cli.py              # CLI interface
+│   └── exceptions.py       # Custom exceptions
+├── tests/
+│   ├── test_lib.py         # Tests for core logic
+│   └── test_processors.py  # Tests for processors
+├── requirements.txt        # Project dependencies
+├── Dockerfile              # Container definition
+└── README.md               # This file
+```
+
+## Installation
+
+### Local Installation
 
 ```bash
-# Generate an exercise with default parameters
-python cli.py generate
+# Clone the repository
+git clone https://github.com/yourusername/adaptive-music-generator.git
+cd adaptive-music-generator
 
-# Generate an exercise with custom parameters
-python cli.py generate --instrument Trumpet --level Intermediate --key "C Major" --time-signature 4/4 --measures 4 --output-format mp3
+# Install dependencies
+pip install -r requirements.txt
 
-# Force fallback audio generation (useful when soundfonts are unavailable)
-python cli.py generate --force-fallback
+# Set Mistral API Key (required for exercise generation)
+export MISTRAL_API_KEY="your_api_key_here"
+# On Windows use: set MISTRAL_API_KEY=your_api_key_here
+```
+
+### Docker Installation
+
+```bash
+# Build the Docker image
+docker build -t harmonyhub .
+
+# Run the container with your API key
+docker run -it --rm -e MISTRAL_API_KEY="your_api_key_here" harmonyhub
+```
+
+## Usage
+
+### CLI Usage
+
+```bash
+# Generate a music exercise
+python cli.py generate --instrument Piano --level Beginner --key "C Major" --time-signature 4/4 --measures 4 --output-format mp3
 
 # Generate a metronome track
-python cli.py metronome --tempo 120 --time-signature 4/4 --measures 4
+python cli.py metronome --tempo 120 --time-signature 4/4 --measures 8
 
-# Convert a JSON exercise file to MIDI or MP3
-python cli.py convert --input-file exercise.json --output-format mp3
+# Convert a MIDI file to audio
+python cli.py convert --input-file exercise.mid --output-format wav
 
-# Display available options
+# Show available options
 python cli.py info
 ```
-## Docker Deployment
-Build and run the Docker container:
+
+### Docker Usage
 
 ```bash
-docker build -t music-exercise-generator .
-docker run -p 7860:7860 music-exercise-generator
+# Run with specific command
+docker run -it --rm -v $(pwd)/output:/app/output -e MISTRAL_API_KEY="your_api_key_here" harmonyhub generate --instrument Piano --level Intermediate
+
+# Show help
+docker run -it --rm harmonyhub --help
 ```
 
-## Dependencies
-See requirements.txt for a full list of dependencies.
+## Troubleshooting
+
+### API Key Error
+
+If you see an error like:
+```
+Error generating exercise: MISTRAL_API_KEY environment variable not set
+```
+
+Make sure to set your Mistral API key as an environment variable:
+```bash
+# Linux/macOS
+export MISTRAL_API_KEY="yQdfM8MLbX9uhInQ7id4iUTwN4h4pDLX"
+
+# Windows
+set MISTRAL_API_KEY=yQdfM8MLbX9uhInQ7id4iUTwN4h4pDLX
+```
+
+### Command Parameter Issues
+
+If you see an error like:
+```
+No such option: --difficulty
+```
+
+Make sure to use the correct parameter names. Use `--level` instead of `--difficulty` for specifying the exercise difficulty level.
+
+## Development
+
+### Running Tests
+
+```bash
+python -m pytest tests/
+```
+
+### Adding New Features
+
+1. Implement your feature in the appropriate module
+2. Add tests in the `tests/` directory
+3. Update documentation as needed
+
+## License
+
+MIT
+
+## Acknowledgements
+
+- FluidSynth for MIDI to audio conversion
+- VexFlow for music notation rendering
+- Mistral AI for the language model backend
 
 
 
