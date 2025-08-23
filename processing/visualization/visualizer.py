@@ -36,14 +36,22 @@ def create_visualization(json_data: str, time_sig: str) -> Optional[str]:
         # Extract notes and durations
         notes = []
         durations = []
-        for note, dur in parsed:
+        for note_item in parsed:
             try:
-                midi_note = note_name_to_midi(note)
+                # Handle both object format and legacy array format
+                if isinstance(note_item, dict):
+                    note_name = note_item['note']
+                    dur = note_item['duration']
+                else:
+                    # Legacy format [note, duration]
+                    note_name, dur = note_item
+                    
+                midi_note = note_name_to_midi(note_name)
                 notes.append(midi_note)
                 durations.append(dur)
             except ValueError:
                 notes.append(60)  # Default to middle C if parsing fails
-                durations.append(dur)
+                durations.append(dur if 'dur' in locals() else 1)
 
         # Create piano roll visualization
         import matplotlib.pyplot as plt

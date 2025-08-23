@@ -18,18 +18,26 @@ MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "bPj0wARXs5dk2L1ipFOdoqHMmQnXuMNv")
 
 
-def scale_json_durations(json_data: List[List[Any]], target_units: int) -> List[List[Any]]:
+def scale_json_durations(json_data: List[Dict[str, Any]], target_units: int) -> List[Dict[str, Any]]:
     """
     Scales durations so that their sum is exactly target_units (8th notes).
     
     Args:
-        json_data: List of [note, duration] pairs
+        json_data: List of objects with note, duration, and cumulative_duration properties
         target_units: Target total duration in 8th note units
         
     Returns:
-        Scaled list of [note, duration] pairs
+        Scaled list of objects with note, duration, and cumulative_duration properties
     """
-    durations = [int(d) for _, d in json_data]
+    # Handle legacy format if needed
+    if json_data and isinstance(json_data[0], list):
+        # Convert from [note, duration] pairs to objects
+        new_data = []
+        for note, duration in json_data:
+            new_data.append({"note": note, "duration": duration, "cumulative_duration": 0})
+        json_data = new_data
+    
+    durations = [int(item["duration"]) for item in json_data]
     total = sum(durations)
     if total == 0:
         return json_data
@@ -37,15 +45,20 @@ def scale_json_durations(json_data: List[List[Any]], target_units: int) -> List[
     # Calculate proportional scaling with integer arithmetic
     scaled = []
     remainder = target_units
-    for i, (note, d) in enumerate(json_data):
+    cumulative = 0
+    
+    for i, item in enumerate(json_data):
         if i < len(json_data) - 1:
             # Proportional allocation
-            portion = max(1, round(d * target_units / total))
-            scaled.append([note, portion])
+            portion = max(1, round(item["duration"] * target_units / total))
+            cumulative += portion
+            scaled.append({"note": item["note"], "duration": portion, "cumulative_duration": cumulative})
             remainder -= portion
         else:
             # Last note gets all remaining units
-            scaled.append([note, max(1, remainder)])
+            portion = max(1, remainder)
+            cumulative += portion
+            scaled.append({"note": item["note"], "duration": portion, "cumulative_duration": cumulative})
 
     return scaled
 
@@ -62,6 +75,11 @@ def safe_parse_json(text: str) -> Optional[List]:
     """
     try:
         text = text.replace("'", '"')
+        # Try to match array of objects format first
+        match = re.search(r"\[(\s*\{.*?\}\s*,?)*\]", text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        # Fall back to array of arrays format for backward compatibility
         match = re.search(r"\[(\s*\[.*?\]\s*,?)*\]", text, re.DOTALL)
         if match:
             return json.loads(match.group(0))
@@ -151,8 +169,15 @@ def get_fallback_exercise(instrument: str, level: str, key: str,
         durs[-1] = durs[-1] - (total_units - target_units)
     elif total_units < target_units:
         durs[-1] = durs[-1] + (target_units - total_units)
+    
+    # Create objects with cumulative_duration
+    result = []
+    cumulative = 0
+    for n, d in zip(notes, durs):
+        cumulative += d
+        result.append({"note": n, "duration": d, "cumulative_duration": cumulative})
 
-    return json.dumps([[n, d] for n, d in zip(notes, durs)])
+    return json.dumps(result)
 
 
 def query_mistral(prompt: str, instrument: str, level: str, key: str,
@@ -202,12 +227,18 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
 
     if prompt.strip():
         user_prompt = (
-            f"{prompt} {duration_constraint} Output ONLY a JSON array of [note, duration] pairs.\n\n"
+            f"{prompt} {duration_constraint} Output ONLY a JSON array of objects with note, duration, and cumulative_duration properties.\n\n"
             "The response must follow this JSON schema:\n"
-            "{ \"type\": \"array\", \"items\": { \"type\": \"array\", \"items\": [ "
-            "{\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
-            "{\"type\": \"integer\", \"description\": \"Duration in 8th note units\"} ], "
-            "\"minItems\": 2, \"maxItems\": 2 } }"
+            "{ \"type\": \"array\", \"items\": { \"type\": \"object\", \"properties\": { "
+            "\"note\": {\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
+            "\"duration\": {\"type\": \"integer\", \"description\": \"Duration in 8th note units\"}, "
+            "\"cumulative_duration\": {\"type\": \"integer\", \"description\": \"Running total of duration\"} }, "
+            "\"required\": [\"note\", \"duration\", \"cumulative_duration\"] } }\n\n"
+            "Example format:\n"
+            "[\n  {\"note\": \"C4\", \"duration\": 2, \"cumulative_duration\": 2},\n  "
+            "{\"note\": \"E4\", \"duration\": 2, \"cumulative_duration\": 4},\n  "
+            "{\"note\": \"G4\", \"duration\": 4, \"cumulative_duration\": 8},\n  "
+            "{\"note\": \"C5\", \"duration\": 8, \"cumulative_duration\": 16}\n]"
         )
     else:
         style = get_style_based_on_level(level)
@@ -215,17 +246,44 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
         user_prompt = (
             f"Create a {style} {instrument.lower()} exercise in {key} with {time_sig} time signature "
             f"{technique} for a {level.lower()} player. {duration_constraint} "
-            "Output ONLY a JSON array of [note, duration] pairs following these rules: "
+            "Output ONLY a JSON array of objects with note, duration, and cumulative_duration properties following these rules: "
             "Use standard note names (e.g., \"Bb4\", \"F#5\"). Monophonic only. "
             "Durations: 1=8th, 2=quarter, 4=half, 8=whole. "
             "Sum must be exactly as specified. ONLY output the JSON array. No prose.\n\n"
             "The response must follow this JSON schema:\n"
-            "{ \"type\": \"array\", \"items\": { \"type\": \"array\", \"items\": [ "
-            "{\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
-            "{\"type\": \"integer\", \"description\": \"Duration in 8th note units\"} ], "
-            "\"minItems\": 2, \"maxItems\": 2 } }"
+            "{ \"type\": \"array\", \"items\": { \"type\": \"object\", \"properties\": { "
+            "\"note\": {\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
+            "\"duration\": {\"type\": \"integer\", \"description\": \"Duration in 8th note units\"}, "
+            "\"cumulative_duration\": {\"type\": \"integer\", \"description\": \"Running total of duration\"} }, "
+            "\"required\": [\"note\", \"duration\", \"cumulative_duration\"] } }\n\n"
+            "Example format:\n"
+            "[\n  {\"note\": \"C4\", \"duration\": 2, \"cumulative_duration\": 2},\n  "
+            "{\"note\": \"E4\", \"duration\": 2, \"cumulative_duration\": 4},\n  "
+            "{\"note\": \"G4\", \"duration\": 4, \"cumulative_duration\": 8},\n  "
+            "{\"note\": \"C5\", \"duration\": 8, \"cumulative_duration\": 16}\n]"
         )
 
+    # Define JSON schema for the response
+    json_schema = {
+        "type": "json_schema",
+        "json_schema": {
+            "schema": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "note": {"type": "string", "description": "Note name (e.g., C4, F#5)"},
+                        "duration": {"type": "integer", "description": "Duration in 8th note units"},
+                        "cumulative_duration": {"type": "integer", "description": "Running total of duration"}
+                    },
+                    "required": ["note", "duration", "cumulative_duration"]
+                }
+            },
+            "name": "music_exercise",
+            "strict": True
+        }
+    }
+    
     payload = {
         "model": "mistral-medium",
         "messages": [
@@ -260,7 +318,7 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
 
 
 def generate_exercise(instrument: str, level: str, key: str, time_signature: str,
-                      measures: int, custom_prompt: str = "", api_key: Optional[str] = None) -> List[List[Any]]:
+                      measures: int, custom_prompt: str = "", api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Generate a music exercise with proper error handling.
     
@@ -274,7 +332,7 @@ def generate_exercise(instrument: str, level: str, key: str, time_signature: str
         api_key: Optional API key
         
     Returns:
-        List of [note, duration] pairs
+        List of objects with note, duration, and cumulative_duration properties
         
     Raises:
         ValueError: If parameters are invalid
@@ -305,18 +363,38 @@ def generate_exercise(instrument: str, level: str, key: str, time_signature: str
                 units_per_measure = numerator * (8 // denominator)
                 target_units = measures * units_per_measure
                 note_duration = max(1, target_units / len(notes))
-                parsed = [[n, note_duration] for n in notes]
+                
+                # Create objects with cumulative_duration
+                parsed = []
+                cumulative = 0
+                for note in notes:
+                    duration = int(note_duration)
+                    cumulative += duration
+                    parsed.append({"note": note, "duration": duration, "cumulative_duration": cumulative})
+                
                 # Adjust last note to match total duration
-                total = sum(d for _, d in parsed)
+                total = sum(item["duration"] for item in parsed)
                 if total < target_units:
-                    parsed[-1][1] += target_units - total
+                    parsed[-1]["duration"] += target_units - total
+                    parsed[-1]["cumulative_duration"] += target_units - total
                 elif total > target_units:
-                    parsed[-1][1] -= total - target_units
+                    parsed[-1]["duration"] -= total - target_units
+                    parsed[-1]["cumulative_duration"] -= total - target_units
+
+        # Handle potential legacy format ([note, duration] pairs)
+        if parsed and isinstance(parsed[0], list):
+            # Convert from [note, duration] pairs to objects with cumulative_duration
+            new_parsed = []
+            cumulative = 0
+            for note, duration in parsed:
+                cumulative += duration
+                new_parsed.append({"note": note, "duration": duration, "cumulative_duration": cumulative})
+            parsed = new_parsed
 
         # Clean note strings to remove ornamentation
         from .theory import clean_note_string
-        for i, (note, dur) in enumerate(parsed):
-            parsed[i][0] = clean_note_string(note)
+        for item in parsed:
+            item["note"] = clean_note_string(item["note"])
 
         # Calculate total required 8th notes
         numerator, denominator = map(int, time_signature.split('/'))

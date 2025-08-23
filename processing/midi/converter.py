@@ -15,13 +15,14 @@ from lib.music_generation.constants import TICKS_PER_BEAT, TICKS_PER_8TH, INSTRU
 from lib.music_generation.theory import note_name_to_midi
 
 
-def json_to_midi(json_data: List[List[Any]], instrument: str, tempo: int, 
+def json_to_midi(json_data: List[Any], instrument: str, tempo: int, 
                  time_signature: str, measures: int) -> MidiFile:
     """
     Convert JSON note data to a MIDI file.
     
     Args:
-        json_data: List of [note, duration] pairs
+        json_data: List of objects with 'note', 'duration', and 'cumulative_duration' properties,
+                  or legacy format of [note, duration] pairs
         instrument: Instrument name
         tempo: Tempo in BPM
         time_signature: Time signature (e.g., "4/4")
@@ -44,8 +45,16 @@ def json_to_midi(json_data: List[List[Any]], instrument: str, tempo: int,
     track.append(MetaMessage('set_tempo', tempo=mido.bpm2tempo(tempo), time=0))
     track.append(Message('program_change', program=program, time=0))
 
-    for note_name, duration_units in json_data:
+    for note_item in json_data:
         try:
+            # Handle both object format and legacy array format
+            if isinstance(note_item, dict):
+                note_name = note_item['note']
+                duration_units = note_item['duration']
+            else:
+                # Legacy format [note, duration]
+                note_name, duration_units = note_item
+                
             note_num = note_name_to_midi(note_name)
             ticks = int(duration_units * TICKS_PER_8TH)  # Convert 8th note units to ticks
             ticks = max(ticks, 1)  # Ensure at least 1 tick
@@ -53,7 +62,7 @@ def json_to_midi(json_data: List[List[Any]], instrument: str, tempo: int,
             track.append(Message('note_on', note=note_num, velocity=velocity, time=0))
             track.append(Message('note_off', note=note_num, velocity=velocity, time=ticks))
         except Exception as e:
-            print(f"Error parsing note {note_name}: {e}")
+            print(f"Error parsing note {note_name if 'note_name' in locals() else 'unknown'}: {e}")
             # Continue with next note instead of failing completely
     return mid
 

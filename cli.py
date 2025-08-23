@@ -105,7 +105,7 @@ def generate_exercise_with_output(instrument: str, level: str, key: str, tempo: 
         output_json_str = json.dumps(parsed_scaled, indent=2)
         
         # Calculate total duration units
-        total_duration = sum(d for _, d in parsed_scaled)
+        total_duration = sum(note_obj['duration'] for note_obj in parsed_scaled)
         
         # Generate MIDI
         midi = json_to_midi(parsed_scaled, instrument, tempo, time_signature, measures)
@@ -289,14 +289,26 @@ def convert(
 
     # Clean the note data
     cleaned_parsed = []
-    for note, dur in parsed:
-        cleaned_note = clean_note_string(note)
-        cleaned_parsed.append([cleaned_note, dur])
+    for note_item in parsed:
+        # Handle both object format and legacy array format
+        if isinstance(note_item, dict):
+            note_name = note_item['note']
+            dur = note_item['duration']
+            cleaned_note = clean_note_string(note_name)
+            cleaned_parsed.append({"note": cleaned_note, "duration": dur, "cumulative_duration": note_item.get('cumulative_duration', 0)})
+        else:
+            # Legacy format [note, duration]
+            note_name, dur = note_item
+            cleaned_note = clean_note_string(note_name)
+            cleaned_parsed.append([cleaned_note, dur])
 
     # Generate MIDI
     with console.status("[bold green]Converting to MIDI...[/bold green]"):
         # Calculate measures from JSON data
-        total_units = sum(d for _, d in cleaned_parsed)
+        if isinstance(cleaned_parsed[0], dict):
+            total_units = sum(item['duration'] for item in cleaned_parsed)
+        else:
+            total_units = sum(d for _, d in cleaned_parsed)
         # Extract the actual time signature string from the enum
         time_sig_str = time_signature.value
         numerator, denominator = map(int, time_sig_str.split('/'))
