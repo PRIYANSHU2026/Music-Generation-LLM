@@ -202,7 +202,12 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
 
     if prompt.strip():
         user_prompt = (
-            f"{prompt} {duration_constraint} Output ONLY a JSON array of [note, duration] pairs."
+            f"{prompt} {duration_constraint} Output ONLY a JSON array of [note, duration] pairs.\n\n"
+            "The response must follow this JSON schema:\n"
+            "{ \"type\": \"array\", \"items\": { \"type\": \"array\", \"items\": [ "
+            "{\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
+            "{\"type\": \"integer\", \"description\": \"Duration in 8th note units\"} ], "
+            "\"minItems\": 2, \"maxItems\": 2 } }"
         )
     else:
         style = get_style_based_on_level(level)
@@ -213,7 +218,12 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
             "Output ONLY a JSON array of [note, duration] pairs following these rules: "
             "Use standard note names (e.g., \"Bb4\", \"F#5\"). Monophonic only. "
             "Durations: 1=8th, 2=quarter, 4=half, 8=whole. "
-            "Sum must be exactly as specified. ONLY output the JSON array. No prose."
+            "Sum must be exactly as specified. ONLY output the JSON array. No prose.\n\n"
+            "The response must follow this JSON schema:\n"
+            "{ \"type\": \"array\", \"items\": { \"type\": \"array\", \"items\": [ "
+            "{\"type\": \"string\", \"description\": \"Note name (e.g., C4, F#5)\"}, "
+            "{\"type\": \"integer\", \"description\": \"Duration in 8th note units\"} ], "
+            "\"minItems\": 2, \"maxItems\": 2 } }"
         )
 
     payload = {
@@ -235,8 +245,14 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
         return content.replace("```json", "").replace("```", "").strip()
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            print(f"Rate limit exceeded for Mistral API. Using fallback exercise.")
+        else:
+            print(f"Error querying Mistral API: {e}")
+        return get_fallback_exercise(instrument, level, key, time_sig, measures)
     except requests.exceptions.RequestException as e:
-        print(f"Error querying Mistral API: {e}")
+        print(f"Network error querying Mistral API: {e}")
         return get_fallback_exercise(instrument, level, key, time_sig, measures)
     except (KeyError, IndexError) as e:
         print(f"Error parsing Mistral API response: {e}")
