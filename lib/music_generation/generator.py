@@ -253,7 +253,7 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
 
     # Define JSON schema for the response
     json_schema = {
-        "type": "json_schema",
+        "type": "json_object",
         "json_schema": {
             "schema": {
                 "type": "array",
@@ -283,7 +283,7 @@ def query_mistral(prompt: str, instrument: str, level: str, key: str,
         "top_p": 0.95,
         "frequency_penalty": 0.2,
         "presence_penalty": 0.2,
-        "response_format": {"type": "json_object"}
+        "response_format": json_schema
     }
 
     try:
